@@ -1,0 +1,2019 @@
+//quran_app1/core/api/api_endpoints.dart
+
+class ApiEndpoints {
+  static const quranPagesBaseUrl = 'https://quranapi.pages.dev/api';
+  static const alQuranCloudBaseUrl = 'https://api.alquran.cloud/v1';
+
+  // quranapi.pages.dev
+  static const surahs = '/surah.json';
+  static String quranPagesSurah(int surahNo) => '/$surahNo.json';
+
+  // alquran.cloud
+  static String ayahEdition(int surahNo, int ayahNo, String edition) =>
+      '/ayah/$surahNo:$ayahNo/$edition';
+
+  static String surahEdition(int surahNo, String edition) =>
+      '/surah/$surahNo/$edition';
+}
+-------
+
+
+// lib/core/constants/app_constants.dart
+class AppConstants {
+  // QuranAPI للعرض وقائمة السور
+  static const String baseUrl = 'https://quranapi.pages.dev/api';
+
+  // AlQuran Cloud للصوت والتفاسير والمعاني
+  static const String alQuranCloudBaseUrl = 'https://api.alquran.cloud/v1';
+
+  static const List<String> arabicNums = [
+    '٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'
+  ];
+
+  static String toArabicNum(int n) =>
+      n.toString().split('').map((d) => arabicNums[int.parse(d)]).join('');
+
+  static const String bismillah =
+      'بِسۡمِ ٱللَّهِ ٱلرَّحۡمَـٰنِ ٱلرَّحِيمِ';
+
+  static const String defaultReciterKey = 'ar.minshawi';
+  static const String defaultMeaningEdition = 'ar.muyassar';
+  static const String defaultTafsirEdition = 'ar.muyassar';
+
+  static const Map<String, String> recitersAr = {
+    'ar.minshawi': 'محمد صديق المنشاوي',
+    'ar.minshawimujawwad': 'محمد صديق المنشاوي - المجود',
+    'ar.abdulsamad': 'عبد الباسط عبد الصمد',
+    'ar.abdulbasitmurattal': 'عبد الباسط عبد الصمد - المرتل',
+    'ar.alafasy': 'مشاري راشد العفاسي',
+    'ar.husary': 'محمود خليل الحصري',
+    'ar.mahermuaiqly': 'ماهر المعيقلي',
+    'ar.abdurrahmaansudais': 'عبد الرحمن السديس',
+    'ar.hudhaify': 'علي الحذيفي',
+    'ar.shaatree': 'أبو بكر الشاطري',
+    'ar.hanirifai': 'هاني الرفاعي',
+  };
+
+  static const Map<String, String> meaningEditions = {
+    'ar.muyassar': 'العربية - المعنى الميسر',
+    'en.sahih': 'English - Saheeh International',
+    'en.pickthall': 'English - Pickthall',
+    'en.yusufali': 'English - Yusuf Ali',
+    'ur.junagarhi': 'اردو - جوناگڑھی',
+    'bn.bengali': 'বাংলা - Muhiuddin Khan',
+    'fr.hamidullah': 'Français - Hamidullah',
+    'id.indonesian': 'Indonesia',
+    'fa.fooladvand': 'فارسی - فولادوند',
+  };
+
+  static const Map<String, String> tafsirEditionsAr = {
+    'ar.muyassar': 'التفسير الميسر',
+    'ar.jalalayn': 'تفسير الجلالين',
+    'ar.qurtubi': 'تفسير القرطبي',
+    'ar.waseet': 'التفسير الوسيط',
+    'ar.baghawi': 'تفسير البغوي',
+  };
+
+  static bool isRtlEdition(String edition) {
+    return edition.startsWith('ar.') ||
+        edition.startsWith('ur.') ||
+        edition.startsWith('fa.');
+  }
+
+  static const int totalSurahs = 114;
+}
+-----
+//package:quran_app1/core/network/base_options.dar
+
+import 'package:dio/dio.dart';
+
+import '../api/api_endpoints.dart';
+
+final dio = Dio(
+  BaseOptions(
+    baseUrl: ApiEndpoints.baseUrl,
+    connectTimeout: const Duration(seconds: 20),
+    receiveTimeout: const Duration(seconds: 20),
+  ),
+);
+------
+
+// lib/core/network/dio_client.dart
+import 'package:dio/dio.dart';
+import '../api/api_endpoints.dart';
+
+class DioClient {
+  DioClient._();
+
+  static final Dio quranPages = Dio(
+    BaseOptions(
+      baseUrl: ApiEndpoints.quranPagesBaseUrl,
+      connectTimeout: const Duration(seconds: 20),
+      receiveTimeout: const Duration(seconds: 20),
+      headers: {'Accept': 'application/json'},
+    ),
+  );
+
+  static final Dio alQuranCloud = Dio(
+    BaseOptions(
+      baseUrl: ApiEndpoints.alQuranCloudBaseUrl,
+      connectTimeout: const Duration(seconds: 20),
+      receiveTimeout: const Duration(seconds: 20),
+      headers: {'Accept': 'application/json'},
+    ),
+  );
+}
+-------
+// lib/core/network/failures.dart
+abstract class Failure {
+  final String message;
+  const Failure(this.message);
+}
+
+class NetworkFailure extends Failure {
+  const NetworkFailure(super.message);
+}
+
+class ServerFailure extends Failure {
+  final int? code;
+  const ServerFailure(super.message, {this.code});
+}
+
+class CacheFailure extends Failure {
+  const CacheFailure(super.message);
+}
+
+class UnknownFailure extends Failure {
+  const UnknownFailure(super.message);
+}
+-------
+
+
+// lib/core/theme/app_theme.dart
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
+class AppColors {
+  // ── Primary
+  static const Color green900  = Color(0xFF0D2B1F);
+  static const Color green800  = Color(0xFF1B4332);
+  static const Color green600  = Color(0xFF2D6A4F);
+  static const Color green400  = Color(0xFF40916C);
+  static const Color gold      = Color(0xFFD4AF37);
+  static const Color goldLight = Color(0xFFF0D875);
+  static const Color goldDark  = Color(0xFFB8860B);
+
+  // ── Light surfaces
+  static const Color bgLight      = Color(0xFFF9F5EC);
+  static const Color surfaceLight = Color(0xFFFFFFFF);
+  static const Color cardLight    = Color(0xFFFDF8EE);
+  static const Color dividerL     = Color(0xFFE5DCC8);
+  static const Color txtPL        = Color(0xFF1A1A1A);
+  static const Color txtSL        = Color(0xFF5A6474);
+  static const Color arabicL      = Color(0xFF0D1B0D);
+
+  // ── Dark surfaces
+  static const Color bgDark      = Color(0xFF0D1512);
+  static const Color surfaceDark = Color(0xFF162118);
+  static const Color cardDark    = Color(0xFF1E2E22);
+  static const Color dividerD    = Color(0xFF2A3D2E);
+  static const Color txtPD       = Color(0xFFE8E0D0);
+  static const Color txtSD       = Color(0xFF9CA8A0);
+  static const Color arabicD     = Color(0xFFF0E8D8);
+
+  // ── Semantic
+  static const Color makki   = Color(0xFF8B4513);
+  static const Color madani  = Color(0xFF1B4332);
+  static const Color error   = Color(0xFFCF6679);
+}
+
+class AppTheme {
+  static ThemeData light() => _build(
+    brightness: Brightness.light,
+    primary: AppColors.green800,
+    secondary: AppColors.gold,
+    bg: AppColors.bgLight,
+    surface: AppColors.surfaceLight,
+    card: AppColors.cardLight,
+    divider: AppColors.dividerL,
+    txtP: AppColors.txtPL,
+    txtS: AppColors.txtSL,
+    onPrimary: Colors.white,
+    barBg: AppColors.green800,
+    barFg: Colors.white,
+    navSelected: AppColors.green800,
+    navUnselected: AppColors.txtSL,
+    statusBrightness: Brightness.light,
+  );
+
+  static ThemeData dark() => _build(
+    brightness: Brightness.dark,
+    primary: AppColors.green400,
+    secondary: AppColors.gold,
+    bg: AppColors.bgDark,
+    surface: AppColors.surfaceDark,
+    card: AppColors.cardDark,
+    divider: AppColors.dividerD,
+    txtP: AppColors.txtPD,
+    txtS: AppColors.txtSD,
+    onPrimary: Colors.white,
+    barBg: AppColors.surfaceDark,
+    barFg: AppColors.txtPD,
+    navSelected: AppColors.gold,
+    navUnselected: AppColors.txtSD,
+    statusBrightness: Brightness.light,
+  );
+
+  static ThemeData _build({
+    required Brightness brightness,
+    required Color primary,
+    required Color secondary,
+    required Color bg,
+    required Color surface,
+    required Color card,
+    required Color divider,
+    required Color txtP,
+    required Color txtS,
+    required Color onPrimary,
+    required Color barBg,
+    required Color barFg,
+    required Color navSelected,
+    required Color navUnselected,
+    required Brightness statusBrightness,
+  }) {
+    final isDark = brightness == Brightness.dark;
+    return ThemeData(
+      useMaterial3: true,
+      brightness: brightness,
+      colorScheme: ColorScheme(
+        brightness: brightness,
+        primary: primary,
+        onPrimary: onPrimary,
+        secondary: secondary,
+        onSecondary: isDark ? Colors.black : Colors.white,
+        error: AppColors.error,
+        onError: Colors.white,
+        background: bg,
+        onBackground: txtP,
+        surface: surface,
+        onSurface: txtP,
+      ),
+      scaffoldBackgroundColor: bg,
+      cardColor: card,
+      dividerColor: divider,
+      fontFamily: 'Amiri',
+      appBarTheme: AppBarTheme(
+        backgroundColor: barBg,
+        foregroundColor: barFg,
+        elevation: 0,
+        centerTitle: true,
+        systemOverlayStyle: SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: statusBrightness,
+        ),
+        titleTextStyle: TextStyle(
+          fontFamily: 'Amiri',
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+          color: barFg,
+        ),
+      ),
+      bottomNavigationBarTheme: BottomNavigationBarThemeData(
+        backgroundColor: surface,
+        selectedItemColor: navSelected,
+        unselectedItemColor: navUnselected,
+        elevation: 16,
+        type: BottomNavigationBarType.fixed,
+        selectedLabelStyle: const TextStyle(fontFamily: 'Amiri', fontSize: 11),
+        unselectedLabelStyle: const TextStyle(fontFamily: 'Amiri', fontSize: 11),
+      ),
+      textTheme: TextTheme(
+        headlineLarge:  TextStyle(fontFamily:'Amiri', fontSize:28, fontWeight:FontWeight.bold, color:txtP),
+        headlineMedium: TextStyle(fontFamily:'Amiri', fontSize:22, fontWeight:FontWeight.bold, color:txtP),
+        titleLarge:     TextStyle(fontFamily:'Amiri', fontSize:18, fontWeight:FontWeight.bold, color:txtP),
+        titleMedium:    TextStyle(fontFamily:'Amiri', fontSize:16, fontWeight:FontWeight.w600, color:txtP),
+        bodyLarge:      TextStyle(fontFamily:'Amiri', fontSize:16, color:txtP),
+        bodyMedium:     TextStyle(fontFamily:'Amiri', fontSize:14, color:txtS),
+        bodySmall:      TextStyle(fontFamily:'Amiri', fontSize:12, color:txtS),
+        labelLarge:     TextStyle(fontFamily:'Amiri', fontSize:14, fontWeight:FontWeight.bold, color:txtP),
+      ),
+    );
+  }
+}
+------
+
+//quran_app1/features/surah_list/data/cubit/surah_reader_cubit.dar
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import '../../surah_helper/surah_pagination_helper.dart';
+import '../models/quran_page_model.dart';
+import '../models/surah_detail_model.dart';
+
+class SurahReaderState {
+  final SurahDetailModel surah;
+  final List<QuranPageModel> pages;
+  final int currentPage;
+
+  const SurahReaderState({
+    required this.surah,
+    required this.pages,
+    required this.currentPage,
+  });
+
+  QuranPageModel get page => pages[currentPage];
+
+  bool get canGoNext => currentPage < pages.length - 1;
+  bool get canGoPrevious => currentPage > 0;
+
+  SurahReaderState copyWith({
+    int? currentPage,
+  }) {
+    return SurahReaderState(
+      surah: surah,
+      pages: pages,
+      currentPage: currentPage ?? this.currentPage,
+    );
+  }
+}
+
+class SurahReaderCubit extends Cubit<SurahReaderState> {
+  SurahReaderCubit(SurahDetailModel surah)
+      : super(
+    SurahReaderState(
+      surah: surah,
+      pages: SurahPaginationHelper.paginateAyahs(surah.ayahs),
+      currentPage: 0,
+    ),
+  );
+
+  void nextPage() {
+    if (state.canGoNext) {
+      emit(state.copyWith(currentPage: state.currentPage + 1));
+    }
+  }
+
+  void previousPage() {
+    if (state.canGoPrevious) {
+      emit(state.copyWith(currentPage: state.currentPage - 1));
+    }
+  }
+
+  void goToPage(int page) {
+    if (page >= 0 && page < state.pages.length) {
+      emit(state.copyWith(currentPage: page));
+    }
+  }
+}
+-----
+//quran_app1/features/surah_list/data/cubit/tafsir_state_cubit.dart
+import 'package:bloc/bloc.dart';
+import 'package:dio/dio.dart';
+
+import '../../../../core/api/api_endpoints.dart';
+import '../../../../core/network/dio_client.dart';
+import '../../../tafsir/data/models/tafsir_model.dart';
+
+part 'tafsir_state_state.dart';
+
+class TafsirStateCubit extends Cubit<TafsirStateState> {
+  final Dio _dio = DioClient.instance;
+
+  TafsirStateCubit() : super(const TafsirInitial());
+
+  Future<void> getAyahTafsir(int surahNo, int ayahNo) async {
+    emit(const TafsirLoading());
+
+    try {
+      final res = await _dio.get(
+        ApiEndpoints.tafsirAyah(surahNo, ayahNo),
+      );
+
+      final model = AyahTafsirModel.fromJson(
+        res.data as Map<String, dynamic>,
+      );
+
+      emit(TafsirLoaded(model));
+    } on DioException catch (e) {
+      emit(
+        TafsirError(
+          e.message ?? 'حدث خطأ أثناء تحميل التفسير',
+        ),
+      );
+    } catch (e) {
+      emit(
+        TafsirError(
+          e.toString(),
+        ),
+      );
+    }
+  }
+}
+-------
+//quran_app1/features/surah_list/data/cubit/tafsir_state_cubit.dart
+part of 'tafsir_state_cubit.dart';
+
+abstract class TafsirStateState {
+  const TafsirStateState();
+}
+
+class TafsirInitial extends TafsirStateState {
+  const TafsirInitial();
+}
+
+class TafsirLoading extends TafsirStateState {
+  const TafsirLoading();
+}
+
+class TafsirLoaded extends TafsirStateState {
+  final AyahTafsirModel tafsir;
+
+  const TafsirLoaded(this.tafsir);
+}
+
+class TafsirError extends TafsirStateState {
+  final String message;
+
+  const TafsirError(this.message);
+}
+-----
+//quran_app1/features/surah_list/data/models/quran_page_model.dar
+import 'package:quran_app1/features/surah_list/data/models/surah_detail_model.dart';
+
+class QuranPageModel {
+  final int pageIndex;
+  final List<AyahModel> ayahs;
+
+  const QuranPageModel({
+    required this.pageIndex,
+    required this.ayahs,
+  });
+}
+-----
+//quran_app1/features/surah_list/data/models/reciter_selector.dar
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import '../../../../core/constants/app_constants.dart';
+import '../widgets/quran_audio_cubit.dart';
+
+class ReciterSelector extends StatelessWidget {
+  const ReciterSelector({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<QuranAudioCubit, String>(
+      builder: (context, selected) {
+        return DropdownButtonHideUnderline(
+          child: DropdownButton<String>(
+            value: selected,
+            isExpanded: true,
+            items: AppConstants.recitersAr.entries.map((entry) {
+              return DropdownMenuItem(
+                value: entry.key,
+                child: Text(
+                  entry.value,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontFamily: 'Amiri',
+                    fontSize: 14,
+                  ),
+                ),
+              );
+            }).toList(),
+            onChanged: (value) {
+              if (value != null) {
+                context.read<QuranAudioCubit>().changeReciter(value);
+              }
+            },
+          ),
+        );
+      },
+    );
+  }
+}
+------
+
+
+
+// lib/features/surah_detail/data/models/surah_detail_model.dart
+
+import '../../../../core/constants/app_constants.dart';
+
+class AudioInfo {
+  final String reciter;
+  final String url;
+  final String? originalUrl;
+
+  const AudioInfo({
+    required this.reciter,
+    required this.url,
+    this.originalUrl,
+  });
+
+  String get bestUrl => originalUrl ?? url;
+}
+
+class AyahModel {
+  final int number;
+  final int globalNumber;
+  final int page;
+  final String arabicText;
+
+  final String? arabicMeaning;
+  final String? english;
+  final String? urdu;
+  final String? bengali;
+
+  final Map<String, String> meanings;
+  final Map<String, String> tafsirs;
+
+  const AyahModel({
+    required this.number,
+    required this.globalNumber,
+    required this.page,
+    required this.arabicText,
+    this.arabicMeaning,
+    this.english,
+    this.urdu,
+    this.bengali,
+    this.meanings = const {},
+    this.tafsirs = const {},
+  });
+
+  String? textForEdition(String edition) {
+    return meanings[edition] ?? tafsirs[edition];
+  }
+}
+
+class SurahDetailModel {
+  final int surahNo;
+  final String surahName;
+  final String surahNameArabic;
+  final String surahNameArabicLong;
+  final String surahNameTranslation;
+  final String revelationPlace;
+  final int totalAyah;
+  final Map<String, AudioInfo> audio;
+  final List<AyahModel> ayahs;
+
+  const SurahDetailModel({
+    required this.surahNo,
+    required this.surahName,
+    required this.surahNameArabic,
+    required this.surahNameArabicLong,
+    required this.surahNameTranslation,
+    required this.revelationPlace,
+    required this.totalAyah,
+    required this.audio,
+    required this.ayahs,
+  });
+
+  bool get isMakki => revelationPlace.toLowerCase().startsWith('mecc');
+
+  bool get hasBismillahHeader => surahNo != 1 && surahNo != 9;
+
+  String get revelationArabic => isMakki ? 'مكية' : 'مدنية';
+
+  factory SurahDetailModel.fromAlQuranCloudEditions(
+    List<dynamic> rawEditions,
+    int surahNo,
+  ) {
+    final editions = rawEditions
+        .map((e) => Map<String, dynamic>.from(e as Map))
+        .toList();
+
+    Map<String, dynamic> editionById(String id) {
+      return editions.firstWhere(
+        (item) {
+          final edition = Map<String, dynamic>.from(item['edition'] as Map);
+          return edition['identifier'] == id;
+        },
+        orElse: () => editions.first,
+      );
+    }
+
+    final quranEdition = editionById(AppConstants.quranTextEdition);
+
+    final editionTexts = <String, Map<int, String>>{};
+
+    for (final surahEdition in editions) {
+      final edition = Map<String, dynamic>.from(surahEdition['edition'] as Map);
+      final id = edition['identifier'] as String? ?? '';
+
+      final ayahs = (surahEdition['ayahs'] as List? ?? [])
+          .map((e) => Map<String, dynamic>.from(e as Map))
+          .toList();
+
+      editionTexts[id] = {
+        for (final ayah in ayahs)
+          (ayah['numberInSurah'] as num).toInt():
+              ayah['text'] as String? ?? '',
+      };
+    }
+
+    final quranAyahs = (quranEdition['ayahs'] as List? ?? [])
+        .map((e) => Map<String, dynamic>.from(e as Map))
+        .toList();
+
+    final ayahs = quranAyahs.map((ayah) {
+      final numberInSurah = (ayah['numberInSurah'] as num).toInt();
+
+      final meanings = <String, String>{};
+      for (final entry in AppConstants.meaningEditions.entries) {
+        final text = editionTexts[entry.key]?[numberInSurah];
+        if (text != null && text.trim().isNotEmpty) {
+          meanings[entry.key] = text;
+        }
+      }
+
+      final tafsirs = <String, String>{};
+      for (final entry in AppConstants.tafsirEditionsAr.entries) {
+        final text = editionTexts[entry.key]?[numberInSurah];
+        if (text != null && text.trim().isNotEmpty) {
+          tafsirs[entry.key] = text;
+        }
+      }
+
+      return AyahModel(
+        number: numberInSurah,
+        globalNumber: (ayah['number'] as num?)?.toInt() ?? 0,
+        page: (ayah['page'] as num?)?.toInt() ?? 0,
+        arabicText: ayah['text'] as String? ?? '',
+        arabicMeaning: meanings['ar.muyassar'],
+        english: meanings['en.sahih'],
+        urdu: meanings['ur.junagarhi'],
+        bengali: meanings['bn.bengali'],
+        meanings: meanings,
+        tafsirs: tafsirs,
+      );
+    }).toList();
+
+    return SurahDetailModel(
+      surahNo: surahNo,
+      surahName: quranEdition['englishName'] as String? ?? '',
+      surahNameArabic: quranEdition['name'] as String? ?? '',
+      surahNameArabicLong: quranEdition['name'] as String? ?? '',
+      surahNameTranslation:
+          quranEdition['englishNameTranslation'] as String? ?? '',
+      revelationPlace: quranEdition['revelationType'] as String? ?? '',
+      totalAyah: quranEdition['numberOfAyahs'] as int? ?? ayahs.length,
+      audio: const {},
+      ayahs: ayahs,
+    );
+  }
+}
+----------------
+// lib/features/surah_list/data/models/surah_info_model.dart
+
+class SurahInfoModel {
+  final int surahNo;
+  final String surahName;
+  final String surahNameArabic;
+  final String surahNameArabicLong;
+  final String surahNameTranslation;
+  final String revelationPlace;
+  final int totalAyah;
+
+  const SurahInfoModel({
+    required this.surahNo,
+    required this.surahName,
+    required this.surahNameArabic,
+    required this.surahNameArabicLong,
+    required this.surahNameTranslation,
+    required this.revelationPlace,
+    required this.totalAyah,
+  });
+
+  factory SurahInfoModel.fromJson(Map<String, dynamic> json) {
+    return SurahInfoModel(
+      surahNo: json['number'] as int? ?? 0,
+      surahName: json['englishName'] as String? ?? '',
+      surahNameArabic: json['name'] as String? ?? '',
+      surahNameArabicLong: json['name'] as String? ?? '',
+      surahNameTranslation: json['englishNameTranslation'] as String? ?? '',
+      revelationPlace: json['revelationType'] as String? ?? '',
+      totalAyah: json['numberOfAyahs'] as int? ?? 0,
+    );
+  }
+
+  bool get isMakki => revelationPlace.toLowerCase().startsWith('mecc');
+
+  String get revelationArabic => isMakki ? 'مكية' : 'مدنية';
+}
+-----
+// lib/features/surah_detail/data/repositories/surah_detail_repository.dart
+import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
+
+import '../../../../core/api/api_endpoints.dart';
+import '../../../../core/constants/app_constants.dart';
+import '../../../../core/network/dio_client.dart';
+import '../../../../core/network/failures.dart';
+import '../models/surah_detail_model.dart';
+
+abstract class ISurahDetailRepository {
+  Future<Either<Failure, SurahDetailModel>> getSurah(int surahNo);
+}
+
+class SurahDetailRepository implements ISurahDetailRepository {
+  final Dio _dio;
+
+  SurahDetailRepository() : _dio = DioClient.instance;
+
+  @override
+  Future<Either<Failure, SurahDetailModel>> getSurah(int surahNo) async {
+    try {
+      final editions = <String>[
+        AppConstants.quranTextEdition,
+        ...AppConstants.defaultMeaningEditions,
+      ];
+
+      final res = await _dio.get(
+        ApiEndpoints.surahEditions(surahNo, editions),
+      );
+
+      final data = (res.data as Map<String, dynamic>)['data'] as List;
+
+      final model = SurahDetailModel.fromAlQuranCloudEditions(data, surahNo);
+
+      return Right(model);
+    } on DioException catch (e) {
+      return Left(NetworkFailure(e.message ?? 'خطأ في الشبكة'));
+    } catch (e) {
+      return Left(UnknownFailure(e.toString()));
+    }
+  }
+}
+-----
+
+// lib/features/surah_list/data/repositories/surah_list_repository.dart
+import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
+
+import '../../../../core/api/api_endpoints.dart';
+import '../../../../core/network/dio_client.dart';
+import '../../../../core/network/failures.dart';
+import '../models/surah_info_model.dart';
+
+abstract class ISurahListRepository {
+  Future<Either<Failure, List<SurahInfoModel>>> getSurahList();
+}
+
+class SurahListRepository implements ISurahListRepository {
+  final Dio _dio;
+
+  SurahListRepository() : _dio = DioClient.instance;
+
+  @override
+  Future<Either<Failure, List<SurahInfoModel>>> getSurahList() async {
+    try {
+      final res = await _dio.get(ApiEndpoints.surahs);
+
+      final data = (res.data as Map<String, dynamic>)['data'] as List;
+
+      final list = data
+          .map((e) => SurahInfoModel.fromJson(
+                Map<String, dynamic>.from(e as Map),
+              ))
+          .toList();
+
+      return Right(list);
+    } on DioException catch (e) {
+      return Left(NetworkFailure(e.message ?? 'خطأ في الشبكة'));
+    } catch (e) {
+      return Left(UnknownFailure(e.toString()));
+    }
+  }
+}
+-----
+//quran_app1/features/surah_list/data/widgets/bismillah_widget.dart
+import 'package:flutter/material.dart';
+
+import '../../../../core/constants/app_constants.dart';
+
+class BismillahWidget extends StatelessWidget {
+  const BismillahWidget({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 18),
+      child: Text(
+        AppConstants.bismillah,
+        textAlign: TextAlign.center,
+        textDirection: TextDirection.rtl,
+        style: TextStyle(
+          fontFamily: 'MeQuran',
+          fontSize: 28,
+          height: 1.8,
+          color: Theme.of(context).colorScheme.primary,
+        ),
+      ),
+    );
+  }
+}
+-----
+//quran_app1/features/surah_list/data/widgets/quran_audio_cubit.dart
+import 'package:dio/dio.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:just_audio/just_audio.dart';
+
+import '../../../../core/api/api_endpoints.dart';
+import '../../../../core/constants/app_constants.dart';
+import '../../../../core/network/dio_client.dart';
+import '../models/surah_detail_model.dart';
+
+class QuranAudioCubit extends Cubit<String> {
+  final AudioPlayer player = AudioPlayer();
+  final Dio _dio = DioClient.instance;
+
+  QuranAudioCubit() : super(AppConstants.defaultReciterKey);
+
+  void changeReciter(String key) {
+    emit(key);
+  }
+
+  Future<void> playAyah(SurahDetailModel surah, AyahModel ayah) async {
+    try {
+      final res = await _dio.get(
+        ApiEndpoints.ayahAudio(
+          surah.surahNo,
+          ayah.number,
+          state,
+        ),
+      );
+
+      final data = (res.data as Map<String, dynamic>)['data']
+          as Map<String, dynamic>;
+
+      final url = data['audio'] as String?;
+
+      if (url == null || url.isEmpty) return;
+
+      await player.stop();
+      await player.setUrl(url);
+      await player.play();
+    } catch (_) {
+      return;
+    }
+  }
+
+  Future<void> stop() async {
+    await player.stop();
+  }
+
+  @override
+  Future<void> close() {
+    player.dispose();
+    return super.close();
+  }
+}
+-----
+//quran_app1/features/surah_list/data/widgets/quran_ayah_widget.dart
+import 'package:flutter/material.dart';
+
+import '../../../../core/constants/app_constants.dart';
+import '../models/surah_detail_model.dart';
+
+class QuranAyahWidget extends StatelessWidget {
+  final AyahModel ayah;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const QuranAyahWidget({
+    super.key,
+    required this.ayah,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final ayahStyle = TextStyle(
+      fontFamily: 'ScheherazadeNew',
+      fontSize: 31,
+      height: 2.05,
+      color: Theme.of(context).textTheme.bodyLarge?.color,
+    );
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(18),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          decoration: BoxDecoration(
+            color: isSelected
+                ? Theme.of(context).colorScheme.primary.withOpacity(0.08)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(18),
+            border: isSelected
+                ? Border.all(
+                    color: Theme.of(context).colorScheme.primary.withOpacity(0.45),
+                  )
+                : null,
+          ),
+          child: Directionality(
+            textDirection: TextDirection.rtl,
+            child: RichText(
+              textAlign: TextAlign.justify,
+              textDirection: TextDirection.rtl,
+              strutStyle: const StrutStyle(
+                fontFamily: 'ScheherazadeNew',
+                fontSize: 31,
+                height: 2.05,
+                forceStrutHeight: true,
+              ),
+              text: TextSpan(
+                children: [
+                  TextSpan(
+                    text: ayah.arabicText.trim(),
+                    style: ayahStyle,
+                  ),
+                  const TextSpan(text: '  '),
+                  WidgetSpan(
+                    alignment: PlaceholderAlignment.middle,
+                    child: AyahNumberBadge(number: ayah.number),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class AyahNumberBadge extends StatelessWidget {
+  final int number;
+
+  const AyahNumberBadge({
+    super.key,
+    required this.number,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 34,
+      height: 34,
+      margin: const EdgeInsets.symmetric(horizontal: 4),
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: Theme.of(context).colorScheme.primary,
+          width: 1.7,
+        ),
+      ),
+      child: Text(
+        AppConstants.toArabicNum(number),
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          fontFamily: 'Amiri',
+          fontSize: 17,
+          height: 1,
+          fontWeight: FontWeight.bold,
+          color: Theme.of(context).colorScheme.primary,
+        ),
+      ),
+    );
+  }
+}
+------
+//quran_app1/features/surah_list/data/widgets/show_meaning_sheet.dart
+import 'package:flutter/material.dart';
+
+import '../../../../core/api/api_endpoints.dart';
+import '../../../../core/constants/app_constants.dart';
+import '../../../../core/network/dio_client.dart';
+import '../models/surah_detail_model.dart';
+
+void showMeaningSheet({
+  required BuildContext context,
+  required int surahNo,
+  required AyahModel ayah,
+}) {
+  showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+    ),
+    builder: (_) {
+      String selectedEdition = AppConstants.defaultMeaningEdition;
+
+      return StatefulBuilder(
+        builder: (context, setModalState) {
+          final isRtl = AppConstants.isRtlEdition(selectedEdition);
+
+          return DraggableScrollableSheet(
+            expand: false,
+            initialChildSize: 0.65,
+            minChildSize: 0.40,
+            maxChildSize: 0.95,
+            builder: (context, controller) {
+              return Directionality(
+                textDirection: TextDirection.rtl,
+                child: ListView(
+                  controller: controller,
+                  padding: const EdgeInsets.all(20),
+                  children: [
+                    Container(
+                      width: 45,
+                      height: 5,
+                      margin: const EdgeInsets.only(bottom: 18),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.withOpacity(0.4),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                    ),
+                    Text(
+                      'المعاني والترجمة - الآية ${AppConstants.toArabicNum(ayah.number)}',
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                    ),
+                    const SizedBox(height: 16),
+                    DropdownButtonFormField<String>(
+                      value: selectedEdition,
+                      decoration: const InputDecoration(
+                        labelText: 'اختر اللغة / المعنى',
+                        border: OutlineInputBorder(),
+                      ),
+                      items: AppConstants.meaningEditions.entries.map((entry) {
+                        return DropdownMenuItem(
+                          value: entry.key,
+                          child: Text(entry.value),
+                        );
+                      }).toList(),
+                      onChanged: (value) {
+                        if (value != null) {
+                          setModalState(() {
+                            selectedEdition = value;
+                          });
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 18),
+                    _AyahEditionText(
+                      surahNo: surahNo,
+                      ayahNo: ayah.number,
+                      edition: selectedEdition,
+                      cachedText: ayah.textForEdition(selectedEdition),
+                      textDirection:
+                          isRtl ? TextDirection.rtl : TextDirection.ltr,
+                    ),
+                  ],
+                ),
+              );
+            },
+          );
+        },
+      );
+    },
+  );
+}
+
+class _AyahEditionText extends StatelessWidget {
+  final int surahNo;
+  final int ayahNo;
+  final String edition;
+  final String? cachedText;
+  final TextDirection textDirection;
+
+  const _AyahEditionText({
+    required this.surahNo,
+    required this.ayahNo,
+    required this.edition,
+    required this.cachedText,
+    required this.textDirection,
+  });
+
+  Future<String> _loadText() async {
+    if (cachedText != null && cachedText!.trim().isNotEmpty) {
+      return cachedText!;
+    }
+
+    final res = await DioClient.instance.get(
+      ApiEndpoints.ayahEditions(surahNo, ayahNo, [edition]),
+    );
+
+    final data = (res.data as Map<String, dynamic>)['data'] as List;
+
+    if (data.isEmpty) return 'لا يوجد محتوى متاح';
+
+    return data.first['text'] as String? ?? 'لا يوجد محتوى متاح';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<String>(
+      key: ValueKey(edition),
+      future: _loadText(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (snapshot.hasError) {
+          return const Text(
+            'حدث خطأ أثناء تحميل المعاني',
+            textAlign: TextAlign.center,
+          );
+        }
+
+        return Directionality(
+          textDirection: textDirection,
+          child: Text(
+            snapshot.data ?? '',
+            textAlign: TextAlign.justify,
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  height: 1.9,
+                  fontSize: 18,
+                ),
+          ),
+        );
+      },
+    );
+  }
+}
+----
+//quran_app1/features/surah_list/data/widgets/surah_card.dart
+import 'package:flutter/material.dart';
+
+import '../../../../core/constants/app_constants.dart';
+import '../../data/models/surah_info_model.dart';
+
+class SurahCard extends StatelessWidget {
+  final SurahInfoModel surah;
+  final VoidCallback onTap;
+
+  const SurahCard({
+    super.key,
+    required this.surah,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+        side: BorderSide(
+          color: Theme.of(context).dividerColor.withOpacity(0.25),
+        ),
+      ),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(20),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      surah.surahNameArabicLong,
+                      textDirection: TextDirection.rtl,
+                      style: const TextStyle(
+                        fontFamily: 'MeQuran',
+                        fontSize: 25,
+                        height: 1.25,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '${surah.revelationArabic} - ${AppConstants.toArabicNum(surah.totalAyah)} آية',
+                      textDirection: TextDirection.rtl,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            fontFamily: 'Amiri',
+                            height: 1.2,
+                          ),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(Icons.arrow_forward_ios_rounded, size: 18),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+---
+
+//quran_app1/features/surah_list/screens/ui/surah_list_screen.dart
+import 'package:flutter/material.dart';
+
+import '../../data/models/surah_info_model.dart';
+import '../../data/repositories/surah_list_repository.dart';
+import '../../data/repositories/surah_detail_repository.dart';
+import '../../data/widgets/surah_card.dart';
+import 'surah_reader_screen.dart';
+
+class SurahListScreen extends StatefulWidget {
+  const SurahListScreen({super.key});
+
+  @override
+  State<SurahListScreen> createState() => _SurahListScreenState();
+}
+
+class _SurahListScreenState extends State<SurahListScreen> {
+  final SurahListRepository _surahListRepository = SurahListRepository();
+
+  bool _isLoading = true;
+  String? _error;
+  List<SurahInfoModel> _surahs = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSurahs();
+  }
+
+  Future<void> _loadSurahs() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+
+    final result = await _surahListRepository.getSurahList();
+
+    result.fold(
+          (failure) {
+        setState(() {
+          _isLoading = false;
+          _error = failure.message;
+        });
+      },
+          (surahs) {
+        setState(() {
+          _isLoading = false;
+          _surahs = surahs;
+        });
+      },
+    );
+  }
+
+  Future<void> _openSurah(SurahInfoModel surah) async {
+    final repo = SurahDetailRepository();
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(
+        child: CircularProgressIndicator(),
+      ),
+    );
+
+    final result = await repo.getSurah(surah.surahNo);
+
+    if (!mounted) return;
+
+    Navigator.pop(context);
+
+    result.fold(
+          (failure) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(failure.message)),
+        );
+      },
+          (detail) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => SurahReaderScreen(surah: detail),
+          ),
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('القرآن الكريم'),
+          centerTitle: true,
+        ),
+        body: _buildBody(),
+      ),
+    );
+  }
+
+  Widget _buildBody() {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (_error != null) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(_error!),
+            const SizedBox(height: 12),
+            ElevatedButton(
+              onPressed: _loadSurahs,
+              child: const Text('إعادة المحاولة'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: _surahs.length,
+      itemBuilder: (context, index) {
+        final surah = _surahs[index];
+
+        return SurahCard(
+          surah: surah,
+          onTap: () => _openSurah(surah),
+        );
+      },
+    );
+  }
+}
+----
+//quran_app1/features/surah_list/screens/ui/surah_page_header.dart
+import 'package:flutter/material.dart';
+
+import '../../../../core/constants/app_constants.dart';
+import '../../data/models/surah_detail_model.dart';
+
+class SurahPageHeader extends StatelessWidget {
+  final SurahDetailModel surah;
+  final int currentPage;
+  final int totalPages;
+
+  const SurahPageHeader({
+    super.key,
+    required this.surah,
+    required this.currentPage,
+    required this.totalPages,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+      margin: const EdgeInsets.only(bottom: 10),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.primary.withOpacity(0.10),
+        borderRadius: BorderRadius.circular(22),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            surah.surahNameArabicLong,
+            textAlign: TextAlign.center,
+            textDirection: TextDirection.rtl,
+            style: TextStyle(
+              fontFamily: 'MeQuran',
+              fontSize: 27,
+              height: 1.25,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            surah.revelationArabic,
+            textDirection: TextDirection.rtl,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  fontFamily: 'Amiri',
+                  height: 1.1,
+                ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            'الصفحة ${AppConstants.toArabicNum(currentPage)} من ${AppConstants.toArabicNum(totalPages)}',
+            textDirection: TextDirection.rtl,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  fontFamily: 'Amiri',
+                  height: 1.1,
+                ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+---
+//quran_app1/features/surah_list/screens/ui/surah_page_navigation.dart
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import '../../data/cubit/surah_reader_cubit.dart';
+
+class SurahPageNavigation extends StatelessWidget {
+  final SurahReaderState state;
+
+  const SurahPageNavigation({
+    super.key,
+    required this.state,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      top: false,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        decoration: BoxDecoration(
+          color: Theme.of(context).scaffoldBackgroundColor,
+          boxShadow: [
+            BoxShadow(
+              blurRadius: 12,
+              color: Colors.black.withOpacity(0.08),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: state.canGoPrevious
+                    ? () => context.read<SurahReaderCubit>().previousPage()
+                    : null,
+                icon: const Icon(Icons.arrow_back),
+                label: const Text('السابق'),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: ElevatedButton.icon(
+                onPressed: state.canGoNext
+                    ? () => context.read<SurahReaderCubit>().nextPage()
+                    : null,
+                icon: const Icon(Icons.arrow_forward),
+                label: const Text('التالي'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+---
+//quran_app1/features/surah_list/screens/ui/surah_reader_screen.dart
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import '../../../../core/constants/app_constants.dart';
+import '../../../tafsir/data/models/show_tafsir_sheet.dart';
+import '../../data/cubit/surah_reader_cubit.dart';
+import '../../data/models/reciter_selector.dart';
+import '../../data/models/surah_detail_model.dart';
+import '../../data/widgets/bismillah_widget.dart';
+import '../../data/widgets/quran_audio_cubit.dart';
+import '../../data/widgets/quran_ayah_widget.dart';
+import '../../data/widgets/show_meaning_sheet.dart';
+import 'surah_page_header.dart';
+import 'surah_page_navigation.dart';
+
+class SurahReaderScreen extends StatefulWidget {
+  final SurahDetailModel surah;
+
+  const SurahReaderScreen({
+    super.key,
+    required this.surah,
+  });
+
+  @override
+  State<SurahReaderScreen> createState() => _SurahReaderScreenState();
+}
+
+class _SurahReaderScreenState extends State<SurahReaderScreen> {
+  int _selectedAyahNo = 1;
+
+  @override
+  Widget build(BuildContext context) {
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(create: (_) => SurahReaderCubit(widget.surah)),
+        BlocProvider(create: (_) => QuranAudioCubit()),
+      ],
+      child: Scaffold(
+        appBar: AppBar(
+          centerTitle: true,
+          title: Text(
+            widget.surah.surahNameArabicLong,
+            style: const TextStyle(
+              fontFamily: 'MeQuran',
+              fontSize: 22,
+              height: 1.2,
+            ),
+          ),
+        ),
+        body: BlocBuilder<SurahReaderCubit, SurahReaderState>(
+          builder: (context, state) {
+            final currentPage = state.page;
+
+            final pageContainsSelected = currentPage.ayahs.any(
+              (ayah) => ayah.number == _selectedAyahNo,
+            );
+
+            final visibleSelectedNo = pageContainsSelected
+                ? _selectedAyahNo
+                : currentPage.ayahs.first.number;
+
+            if (!pageContainsSelected) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (mounted) {
+                  setState(() {
+                    _selectedAyahNo = visibleSelectedNo;
+                  });
+                }
+              });
+            }
+
+            final selectedAyah = state.surah.ayahs.firstWhere(
+              (ayah) => ayah.number == visibleSelectedNo,
+              orElse: () => currentPage.ayahs.first,
+            );
+
+            return Column(
+              children: [
+                Expanded(
+                  child: ListView(
+                    padding: const EdgeInsets.all(16),
+                    children: [
+                      SurahPageHeader(
+                        surah: state.surah,
+                        currentPage: state.currentPage + 1,
+                        totalPages: state.pages.length,
+                      ),
+
+                      ReaderControlsBar(
+                        selectedAyah: selectedAyah,
+                        onPlay: () {
+                          context
+                              .read<QuranAudioCubit>()
+                              .playAyah(state.surah, selectedAyah);
+                        },
+                        onTafsir: () {
+                          showTafsirSheet(
+                            context: context,
+                            surahNo: state.surah.surahNo,
+                            ayahNo: selectedAyah.number,
+                          );
+                        },
+                        onMeaning: () {
+                         showMeaningSheet(
+			  context: context,
+			  surahNo: state.surah.surahNo,
+			  ayah: selectedAyah,
+			);
+                        },
+                      ),
+
+                      const SizedBox(height: 12),
+
+                      if (state.currentPage == 0 &&
+                          state.surah.hasBismillahHeader)
+                        const BismillahWidget(),
+
+                      ...currentPage.ayahs.map(
+                        (ayah) => QuranAyahWidget(
+                          ayah: ayah,
+                          isSelected: ayah.number == visibleSelectedNo,
+                          onTap: () {
+                            setState(() {
+                              _selectedAyahNo = ayah.number;
+                            });
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                SurahPageNavigation(state: state),
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
+
+class ReaderControlsBar extends StatelessWidget {
+  final AyahModel selectedAyah;
+  final VoidCallback onPlay;
+  final VoidCallback onTafsir;
+  final VoidCallback onMeaning;
+
+  const ReaderControlsBar({
+    super.key,
+    required this.selectedAyah,
+    required this.onPlay,
+    required this.onTafsir,
+    required this.onMeaning,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        decoration: BoxDecoration(
+          color: Theme.of(context).cardColor,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(
+            color: Theme.of(context).dividerColor.withOpacity(0.25),
+          ),
+        ),
+        child: Row(
+          children: [
+            const Expanded(
+              child: ReciterSelector(),
+            ),
+            const SizedBox(width: 10),
+            PopupMenuButton<String>(
+              tooltip: 'خيارات الآية',
+              onSelected: (value) {
+                switch (value) {
+                  case 'play':
+                    onPlay();
+                    break;
+                  case 'tafsir':
+                    onTafsir();
+                    break;
+                  case 'meaning':
+                    onMeaning();
+                    break;
+                }
+              },
+              itemBuilder: (context) => const [
+                PopupMenuItem(
+                  value: 'play',
+                  child: Text('تشغيل صوت الآية'),
+                ),
+                PopupMenuItem(
+                  value: 'tafsir',
+                  child: Text('التفسير'),
+                ),
+                PopupMenuItem(
+                  value: 'meaning',
+                  child: Text('المعاني والترجمة'),
+                ),
+              ],
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primary.withOpacity(0.10),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Text(
+                  'الآية ${AppConstants.toArabicNum(selectedAyah.number)}',
+                  style: TextStyle(
+                    fontFamily: 'Amiri',
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+---
+//quran_app1/features/surah_list/surah_helper/quran_text_helper.dart
+import 'package:flutter/material.dart';
+
+class QuranTextHelper {
+  static const List<String> waqfSigns = [
+    'ۘ', 'ۙ', 'ۚ', 'ۛ', 'ۜ', 'ۗ', 'ۖ', 'ە', '۝', '۞',
+    'م', 'لا', 'ج', 'صلى', 'قلى',
+  ];
+
+  static List<InlineSpan> buildQuranSpans({
+    required String text,
+    required TextStyle ayahStyle,
+    required TextStyle waqfStyle,
+  }) {
+    final spans = <InlineSpan>[];
+
+    for (int i = 0; i < text.length; i++) {
+      final char = text[i];
+
+      if (waqfSigns.contains(char)) {
+        spans.add(TextSpan(text: char, style: waqfStyle));
+      } else {
+        spans.add(TextSpan(text: char, style: ayahStyle));
+      }
+    }
+
+    return spans;
+  }
+}
+----
+//quran_app1/features/surah_list/surah_helper/surah_pagination_helper.dart
+import '../data/models/quran_page_model.dart';
+import '../data/models/surah_detail_model.dart';
+
+class SurahPaginationHelper {
+  static List<QuranPageModel> paginateAyahs(
+      List<AyahModel> ayahs, {
+        int ayahsPerPage = 8,
+      }) {
+    final pages = <QuranPageModel>[];
+
+    for (int i = 0; i < ayahs.length; i += ayahsPerPage) {
+      final pageAyahs = ayahs.skip(i).take(ayahsPerPage).toList();
+
+      pages.add(
+        QuranPageModel(
+          pageIndex: pages.length + 1,
+          ayahs: pageAyahs,
+        ),
+      );
+    }
+
+    return pages;
+  }
+}
+---
+//quran_app1/features/tafsir/data/models/show_tafsir_sheet.dart
+import 'package:flutter/material.dart';
+
+import '../../../../core/api/api_endpoints.dart';
+import '../../../../core/constants/app_constants.dart';
+import '../../../../core/network/dio_client.dart';
+
+void showTafsirSheet({
+  required BuildContext context,
+  required int surahNo,
+  required int ayahNo,
+}) {
+  showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+    ),
+    builder: (_) {
+      String selectedTafsir = AppConstants.defaultTafsirEdition;
+
+      return StatefulBuilder(
+        builder: (context, setModalState) {
+          return DraggableScrollableSheet(
+            expand: false,
+            initialChildSize: 0.75,
+            minChildSize: 0.45,
+            maxChildSize: 0.95,
+            builder: (context, controller) {
+              return Directionality(
+                textDirection: TextDirection.rtl,
+                child: ListView(
+                  controller: controller,
+                  padding: const EdgeInsets.all(20),
+                  children: [
+                    Container(
+                      width: 45,
+                      height: 5,
+                      margin: const EdgeInsets.only(bottom: 18),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.withOpacity(0.4),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                    ),
+                    Text(
+                      'تفسير الآية ${AppConstants.toArabicNum(ayahNo)}',
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                    ),
+                    const SizedBox(height: 16),
+                    DropdownButtonFormField<String>(
+                      value: selectedTafsir,
+                      decoration: const InputDecoration(
+                        labelText: 'اختر التفسير',
+                        border: OutlineInputBorder(),
+                      ),
+                      items: AppConstants.tafsirEditionsAr.entries.map((entry) {
+                        return DropdownMenuItem(
+                          value: entry.key,
+                          child: Text(entry.value),
+                        );
+                      }).toList(),
+                      onChanged: (value) {
+                        if (value != null) {
+                          setModalState(() {
+                            selectedTafsir = value;
+                          });
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 18),
+                    _TafsirText(
+                      surahNo: surahNo,
+                      ayahNo: ayahNo,
+                      edition: selectedTafsir,
+                    ),
+                  ],
+                ),
+              );
+            },
+          );
+        },
+      );
+    },
+  );
+}
+
+class _TafsirText extends StatelessWidget {
+  final int surahNo;
+  final int ayahNo;
+  final String edition;
+
+  const _TafsirText({
+    required this.surahNo,
+    required this.ayahNo,
+    required this.edition,
+  });
+
+  Future<String> _loadTafsir() async {
+    final res = await DioClient.instance.get(
+      ApiEndpoints.ayahEditions(surahNo, ayahNo, [edition]),
+    );
+
+    final data = (res.data as Map<String, dynamic>)['data'] as List;
+
+    if (data.isEmpty) return 'لا يوجد تفسير متاح لهذه الآية';
+
+    return data.first['text'] as String? ?? 'لا يوجد تفسير متاح لهذه الآية';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<String>(
+      key: ValueKey(edition),
+      future: _loadTafsir(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (snapshot.hasError) {
+          return const Text(
+            'حدث خطأ أثناء تحميل التفسير',
+            textAlign: TextAlign.center,
+          );
+        }
+
+        return Text(
+          snapshot.data ?? '',
+          textAlign: TextAlign.justify,
+          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                height: 1.9,
+                fontSize: 18,
+              ),
+        );
+      },
+    );
+  }
+}
+----
+
+
+// lib/features/tafsir/data/models/tafsir_model.dart
+
+class TafsirEntry {
+  final String author;
+  final String? groupVerse;
+  final String content;
+
+  const TafsirEntry({
+    required this.author,
+    this.groupVerse,
+    required this.content,
+  });
+
+  factory TafsirEntry.fromJson(Map<String, dynamic> json) => TafsirEntry(
+    author: json['author'] as String? ?? '',
+    groupVerse: json['groupVerse'] as String?,
+    content: json['content'] as String? ?? '',
+  );
+}
+
+class AyahTafsirModel {
+  final String surahName;
+  final int surahNo;
+  final int ayahNo;
+  final List<TafsirEntry> tafsirs;
+
+  const AyahTafsirModel({
+    required this.surahName,
+    required this.surahNo,
+    required this.ayahNo,
+    required this.tafsirs,
+  });
+
+  factory AyahTafsirModel.fromJson(Map<String, dynamic> json) {
+    final rawTafsirs = (json['tafsirs'] as List?) ?? [];
+    return AyahTafsirModel(
+      surahName: json['surahName'] as String? ?? '',
+      surahNo:   json['surahNo']   as int?    ?? 0,
+      ayahNo:    json['ayahNo']    as int?    ?? 0,
+      tafsirs: rawTafsirs
+          .map((e) => TafsirEntry.fromJson(e as Map<String, dynamic>))
+          .toList(),
+    );
+  }
+}
+----
+//quran_app1/main.dart
+import 'package:flutter/material.dart';
+
+import 'core/theme/app_theme.dart';
+import 'features/surah_list/screens/ui/surah_list_screen.dart';
+
+void main() {
+  runApp(const QuranApp());
+}
+
+class QuranApp extends StatelessWidget {
+  const QuranApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      title: 'القرآن الكريم',
+      theme: AppTheme.light(),
+      darkTheme: AppTheme.dark(),
+      themeMode: ThemeMode.system,
+      home: const SurahListScreen(),
+    );
+  }
+}
+----
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # The following adds the Cupertino Icons font to your application.
+  # Use with the CupertinoIcons class for iOS style icons.
+  cupertino_icons: ^1.0.8
+  flutter_bloc: ^9.1.1
+  bloc: ^9.2.1
+  freezed_annotation: ^3.1.0
+  json_annotation: ^4.12.0
+  dio: ^5.9.2
+  get_it: ^9.2.1
+  shimmer: ^3.0.0
+  just_audio: ^0.10.5
+  audio_session: ^0.2.3
+  shared_preferences: ^2.5.5
+  equatable: ^2.0.8
+  dartz: ^0.10.1
+  flutter_markdown: ^0.7.7+1
+  flutter_lints: ^6.0.0
+
+dev_dependencies:
+  build_runner: ^2.15.0
+  flutter_test:
+    sdk: flutter
+  freezed: ^3.2.5
+  json_serializable: ^6.14.0
+  # example:
+  fonts:
+    - family: MeQuran
+      fonts:
+        - asset: assets/fonts/me_quran.ttf
+
+    - family: Amiri
+      fonts:
+         - asset: assets/fonts/Amiri-Regular.ttf
+         - asset: assets/fonts/Amiri-Bold.ttf
+           weight: 700
+
+    - family: ScheherazadeNew
+      fonts:
+        - asset: assets/fonts/ScheherazadeNew-Regular.ttf
+        - asset: assets/fonts/ScheherazadeNew-Bold.ttf
+          weight: 700
+

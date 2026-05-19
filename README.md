@@ -41,6 +41,15 @@ data sources, models, widgets, and Cubit state management.
 * Handle errors using a clean Failure-based structure.
 * Separate Quran reading feature from audio, meanings, translations, and tafsir feature.
 
+## 📸 Screenshots
+
+<p align="center">
+  <img src="assets/images/1.jpeg" width="200"/>
+  <img src="assets/images/2.jpeg" width="200"/>
+  <img src="assets/images/3.jpeg" width="200"/>
+</p>
+
+
 # Core Technologies
 * Flutter
 * Dart

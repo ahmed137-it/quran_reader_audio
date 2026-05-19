@@ -44,9 +44,9 @@ data sources, models, widgets, and Cubit state management.
 ## 📸 Screenshots
 
 <p align="center">
-  <img src="assets/images/1.jpeg" width="200"/>
-  <img src="assets/images/2.jpeg" width="200"/>
-  <img src="assets/images/3.jpeg" width="200"/>
+  <img src="assets/images/1.jpeg" width="150"/>
+  <img src="assets/images/2.jpeg" width="150"/>
+  <img src="assets/images/3.jpeg" width="150"/>
 </p>
 
 
